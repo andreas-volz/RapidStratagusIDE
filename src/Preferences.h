@@ -21,9 +21,13 @@ public:
    */
   void init() {};
 
-  std::string getStratagusGameHomeDir();
+  std::string getStratagusGameDir();
+
+  std::string getStratagusGameDataDir();
 
   std::string getRSIConfigDir();
+
+  std::string getStratagusBinary();
 
 private:
 

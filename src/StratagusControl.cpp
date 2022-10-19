@@ -5,6 +5,7 @@
  */
 
 #include "StratagusControl.h"
+#include "Preferences.h"
 
 #include <iostream>
 
@@ -27,21 +28,18 @@ StratagusControl::~StratagusControl()
 
 bool StratagusControl::start()
 {
-  std::cout << "Start stratagus" << std::endl;
+  Preferences &preferences = Preferences::getInstance();
 
-  string working_dir("/home/andreas/src/git/stargus/stargus");
-  string stratagus_dir("/home/andreas/src/git/stratagus/stratagus");
-  string stratagus_bin("stratagus-dbg");
-  string stratagus_datadir("/home/andreas/.stratagus/data.Stargus");
+  std::cout << "Start stratagus" << std::endl;
 
   std::vector<std::string> argv;
 
-  argv.push_back(stratagus_dir + "/" + stratagus_bin);
+  argv.push_back(preferences.getStratagusBinary());
   argv.push_back("-d");
-  argv.push_back(stratagus_datadir);
+  argv.push_back(preferences.getStratagusGameDataDir());
 
   Glib::SlotSpawnChildSetup setup;
-  Glib::spawn_async(working_dir, argv, Glib::SPAWN_SEARCH_PATH, setup, &stratagusPid);
+  Glib::spawn_async(preferences.getStratagusGameDir(), argv, Glib::SPAWN_SEARCH_PATH, setup, &stratagusPid);
 
   printf("\n\npid: %d\n\n", stratagusPid);
 
