@@ -22,7 +22,8 @@ int main(int argc, char *argv[])
 }
 
 
-Main::Main()
+Main::Main() :
+    m_box1(Gtk::Orientation::ORIENTATION_VERTICAL)
 {
   //Preferences &preferences = Preferences::getInstance();
 
@@ -42,9 +43,11 @@ Main::Main()
   m_button3.signal_clicked().connect( sigc::mem_fun(*this,
                 &Main::on_button3_clicked) );
 
+
   m_box1.pack_start(m_button1);
   m_box1.pack_start(m_button2);
   m_box1.pack_start(m_button3);
+
 
   add(m_box1);
 
