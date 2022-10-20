@@ -11,9 +11,7 @@
 #include "StratagusControl.h"
 
 // system
-#include <gtkmm/window.h>
-#include <gtkmm/button.h>
-#include <gtkmm/box.h>
+#include <gtkmm.h>
 
 class Main : public Gtk::Window
 {
@@ -28,11 +26,13 @@ protected:
   void on_button3_clicked();
 
 private:
-  //Child widgets:
-  Gtk::Button m_button1;
-  Gtk::Button m_button2;
-  Gtk::Button m_button3;
   Gtk::Box m_box1;
+  Gtk::Toolbar mToolbar;
+
+  Gtk::ToolButton mToolButton1;
+  Gtk::ToolButton mToolButton2;
+  Gtk::ToolButton mToolButton3;
+
 
   StratagusControl sControl;
 };
