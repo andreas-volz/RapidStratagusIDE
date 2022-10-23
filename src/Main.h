@@ -19,6 +19,17 @@ public:
   Main();
   virtual ~Main();
 
+  class ModelColumns : public Gtk::TreeModelColumnRecord
+  {
+  public:
+
+    ModelColumns()
+      { add(m_col_text); add(m_col_id); }
+
+    Gtk::TreeModelColumn<Glib::ustring> m_col_text;
+    Gtk::TreeModelColumn<int> m_col_id;
+  };
+
 protected:
   //Signal handlers:
   void on_button1_clicked();
@@ -33,6 +44,10 @@ private:
   Gtk::ToolButton mToolButton2;
   Gtk::ToolButton mToolButton3;
 
+  Gtk::ScrolledWindow scrollWindow;
+  Gtk::TreeView mTreeView;
+  Glib::RefPtr<Gtk::ListStore> mRefListStore;
+  ModelColumns m_Columns;
 
   StratagusControl sControl;
 };

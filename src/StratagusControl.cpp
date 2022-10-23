@@ -12,6 +12,7 @@
 // platform specific
 #include <sys/types.h>
 #include <signal.h>
+#include <gtkmm.h>
 
 using namespace std;
 
@@ -72,4 +73,19 @@ bool StratagusControl::restart()
   bool result = start();
 
   return result;
+}
+
+std::vector<Glib::ustring> StratagusControl::enumerate_files(const Glib::ustring &path)
+{
+
+  Glib::RefPtr<Gio::File> file = Gio::File::create_for_path(path);
+  Glib::RefPtr<Gio::FileEnumerator> child_enumeration = file->enumerate_children(); //G_FILE_ATTRIBUTE_STANDARD_NAME
+  std::vector<Glib::ustring> file_names;
+  Glib::RefPtr<Gio::FileInfo> file_info;
+
+  while ((file_info = child_enumeration->next_file()))
+  {
+    file_names.push_back(file_info->get_name());
+  }
+  return file_names;
 }

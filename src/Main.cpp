@@ -30,7 +30,13 @@ Main::Main() :
   set_title("RapidStratagusIDE");
   set_border_width(10);
 
+
   m_box1.pack_start(mToolbar);
+
+
+  m_box1.pack_start(scrollWindow);
+
+  scrollWindow.add(mTreeView);
 
   add(m_box1);
 
@@ -56,6 +62,29 @@ Main::Main() :
   mToolbar.add(mToolButton1);
   mToolbar.add(mToolButton2);
   mToolbar.add(mToolButton3);
+
+  mRefListStore = Gtk::ListStore::create(m_Columns);
+
+  mTreeView.set_model(mRefListStore);
+
+  Gtk::TreeModel::Row row = *(mRefListStore->append());
+  row[m_Columns.m_col_id] = 2485;
+  row[m_Columns.m_col_text] = "Staubsauger";
+
+  std::vector<Glib::ustring> files = sControl.enumerate_files("/home/andreas/");
+
+  int i = 0;
+  for(auto file : files)
+  {
+    row = *(mRefListStore->append());
+    row[m_Columns.m_col_id] = i;
+    row[m_Columns.m_col_text] = file;
+    i++;
+  }
+
+  mTreeView.append_column("Cases", m_Columns.m_col_text);
+
+
 
   show_all_children();
 }

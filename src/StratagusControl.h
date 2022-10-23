@@ -21,6 +21,8 @@ public:
 
   bool restart();
 
+  std::vector<Glib::ustring> enumerate_files(const Glib::ustring &path);
+
 private:
   Glib::Pid stratagusPid;
 };
