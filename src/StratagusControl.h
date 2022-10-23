@@ -23,6 +23,10 @@ public:
 
   std::vector<Glib::ustring> enumerate_files(const Glib::ustring &path);
 
+  std::string getRSITestDir();
+
+  void writeRSIConfigContent(const std::string &lua);
+
 private:
   Glib::Pid stratagusPid;
 };

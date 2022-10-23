@@ -7,12 +7,14 @@
 #include "StratagusControl.h"
 #include "Preferences.h"
 
+// system
 #include <iostream>
+#include <fstream>
+#include <gtkmm.h>
 
 // platform specific
 #include <sys/types.h>
 #include <signal.h>
-#include <gtkmm.h>
 
 using namespace std;
 
@@ -79,13 +81,35 @@ std::vector<Glib::ustring> StratagusControl::enumerate_files(const Glib::ustring
 {
 
   Glib::RefPtr<Gio::File> file = Gio::File::create_for_path(path);
-  Glib::RefPtr<Gio::FileEnumerator> child_enumeration = file->enumerate_children(); //G_FILE_ATTRIBUTE_STANDARD_NAME
+  Glib::RefPtr<Gio::FileEnumerator> child_enumeration = file->enumerate_children();
   std::vector<Glib::ustring> file_names;
   Glib::RefPtr<Gio::FileInfo> file_info;
 
   while ((file_info = child_enumeration->next_file()))
   {
-    file_names.push_back(file_info->get_name());
+    string name(file_info->get_name());
+    if(name.substr(0, 7) == "rsi_tc_")
+    {
+      file_names.push_back(name);
+    }
   }
   return file_names;
+}
+
+std::string StratagusControl::getRSITestDir()
+{
+  string user_dir(Glib::get_home_dir ());
+
+  user_dir += "/.stratagus/sc/rsi_testscenario";
+
+  return user_dir;
+}
+
+void StratagusControl::writeRSIConfigContent(const std::string &lua)
+{
+  string luaString("Load(\"rsi_testscenario/" + lua + "\")");
+
+  std::ofstream rsi_config_file(getRSITestDir() + "/rsi_configuration.lua");
+
+  rsi_config_file << luaString;
 }
