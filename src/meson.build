@@ -1,7 +1,8 @@
 rsi_sources = files(
-        'Main.cpp',
+        'MainWindow.cpp',
         'StratagusControl.cpp',
-        'Preferences.cpp'
+        'Preferences.cpp',
+        'OutputWorker.cpp'
 )
 
 executable('RapidStratagusIDE',

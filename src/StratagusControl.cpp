@@ -18,8 +18,9 @@
 
 using namespace std;
 
-StratagusControl::StratagusControl() :
-  stratagusPid(0)
+StratagusControl::StratagusControl(OutputWorker &out) :
+  stratagusPid(0),
+  mOut(out)
 {
 
 }
@@ -41,8 +42,16 @@ bool StratagusControl::start()
   argv.push_back("-d");
   argv.push_back(preferences.getStratagusGameDataDir());
 
+  // TODO: a thread should read stdin/stderr and update a text info box
+  int standard_output = 0;
+  int standard_error = 0;
+
+
+
   Glib::SlotSpawnChildSetup setup;
-  Glib::spawn_async(preferences.getStratagusGameDir(), argv, Glib::SPAWN_SEARCH_PATH, setup, &stratagusPid);
+  Glib::spawn_async_with_pipes(preferences.getStratagusGameDir(), argv, Glib::SPAWN_SEARCH_PATH, setup, &stratagusPid, &standard_output, &standard_error);
+
+  mOut.setOutputSteams(standard_output, standard_error);
 
   printf("\n\npid: %d\n\n", stratagusPid);
 

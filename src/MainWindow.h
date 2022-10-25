@@ -9,15 +9,16 @@
 
 // project
 #include "StratagusControl.h"
+#include "OutputWorker.h"
 
 // system
 #include <gtkmm.h>
 
-class Main : public Gtk::Window
+class MainWindow : public Gtk::Window
 {
 public:
-  Main();
-  virtual ~Main();
+  MainWindow();
+  virtual ~MainWindow();
 
   class ModelColumns : public Gtk::TreeModelColumnRecord
   {
@@ -30,6 +31,10 @@ public:
     Gtk::TreeModelColumn<int> m_col_id;
   };
 
+  // Called from the worker thread.
+  void notify();
+
+
 protected:
   //Signal handlers:
   void on_button1_clicked();
@@ -37,6 +42,11 @@ protected:
   void on_button3_clicked();
 
 private:
+  // Dispatcher handler.
+  void on_notification_from_worker_thread();
+
+  void update_widgets();
+
   Gtk::Box m_box1;
   Gtk::Toolbar mToolbar;
 
@@ -44,12 +54,25 @@ private:
   Gtk::ToolButton mToolButton2;
   Gtk::ToolButton mToolButton3;
 
-  Gtk::ScrolledWindow scrollWindow;
+  Gtk::ScrolledWindow mScrollWindowLua;
   Gtk::TreeView mTreeView;
   Glib::RefPtr<Gtk::ListStore> mRefListStore;
   ModelColumns m_Columns;
 
+
+
+  // Output Text View
+  Gtk::ScrolledWindow mScrollWindowOutput;
+  Gtk::TextView mTextViewOutput;
+  Glib::RefPtr<Gtk::TextBuffer> mRefTextOutputBuffer;
+
+  // Thread
+  Glib::Dispatcher m_Dispatcher;
+  OutputWorker m_Worker;
+
   StratagusControl sControl;
+
+  std::thread* m_WorkerThread;
 };
 
 

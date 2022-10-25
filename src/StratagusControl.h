@@ -7,12 +7,14 @@
 #ifndef STRATAGUSCONTROL_H
 #define STRATAGUSCONTROL_H
 
+#include "OutputWorker.h"
+
 #include <glibmm.h>
 
 class StratagusControl
 {
 public:
-  StratagusControl();
+  StratagusControl(OutputWorker &out);
   virtual ~StratagusControl();
 
   bool start();
@@ -29,6 +31,7 @@ public:
 
 private:
   Glib::Pid stratagusPid;
+  OutputWorker &mOut;
 };
 
 #endif /* STRATAGUSCONTROL_H */

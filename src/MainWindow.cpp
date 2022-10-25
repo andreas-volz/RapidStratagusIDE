@@ -1,9 +1,9 @@
 // project
-#include "Main.h"
 #include "Preferences.h"
 
 // system
 #include <iostream>
+#include "MainWindow.h"
 
 using namespace std;
 
@@ -16,18 +16,25 @@ int main(int argc, char *argv[])
     Gtk::Application::create(argc, argv,
       "org.gtkmm.examples.base");
 
-  Main main;
+  MainWindow main;
 
   return app->run(main);
 }
 
 
-Main::Main() :
-    m_box1(Gtk::Orientation::ORIENTATION_VERTICAL)
+MainWindow::MainWindow() :
+    m_box1(Gtk::Orientation::ORIENTATION_VERTICAL),
+    m_Dispatcher(),
+    m_Worker(),
+    sControl(m_Worker),
+    m_WorkerThread(nullptr)
 {
   //Preferences &preferences = Preferences::getInstance();
 
-  set_size_request(250, 500);
+  // Connect the handler to the dispatcher.
+  m_Dispatcher.connect(sigc::mem_fun(*this, &MainWindow::on_notification_from_worker_thread));
+
+  set_size_request(500, 500);
   set_title("RapidStratagusIDE");
   set_border_width(10);
 
@@ -35,9 +42,9 @@ Main::Main() :
   m_box1.pack_start(mToolbar, Gtk::PACK_SHRINK);
 
 
-  m_box1.pack_start(scrollWindow);
+  m_box1.pack_start(mScrollWindowLua);
 
-  scrollWindow.add(mTreeView);
+  mScrollWindowLua.add(mTreeView);
 
   add(m_box1);
 
@@ -55,13 +62,13 @@ Main::Main() :
   mToolButton3.set_tooltip_text("Restart");
 
   mToolButton1.signal_clicked().connect( sigc::mem_fun(*this,
-                  &Main::on_button1_clicked) );
+                  &MainWindow::on_button1_clicked) );
 
   mToolButton2.signal_clicked().connect( sigc::mem_fun(*this,
-                &Main::on_button2_clicked) );
+                &MainWindow::on_button2_clicked) );
 
   mToolButton3.signal_clicked().connect( sigc::mem_fun(*this,
-                &Main::on_button3_clicked) );
+                &MainWindow::on_button3_clicked) );
 
   mToolbar.add(mToolButton1);
   mToolbar.add(mToolButton2);
@@ -86,15 +93,53 @@ Main::Main() :
 
   mTreeView.append_column("Cases", m_Columns.m_col_text);
 
+  // output test
+  mTextViewOutput.set_editable(false);
+  mScrollWindowOutput.add(mTextViewOutput);
+
+  mScrollWindowOutput.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+  mScrollWindowOutput.set_hexpand();
+  mScrollWindowOutput.set_vexpand();
+
+  m_box1.add(mScrollWindowOutput);
+
+  mRefTextOutputBuffer = Gtk::TextBuffer::create();
+
+  mTextViewOutput.set_buffer(mRefTextOutputBuffer);
+
+
+
   show_all_children();
 }
 
-Main::~Main()
+void MainWindow::notify()
+{
+  m_Dispatcher.emit();
+}
+
+void MainWindow::on_notification_from_worker_thread()
+{
+  //cout << "on_notification_from_worker_thread()" << endl;
+
+  if (m_WorkerThread && m_Worker.has_stopped())
+  {
+    // Work is done.
+    if (m_WorkerThread->joinable())
+      m_WorkerThread->join();
+    delete m_WorkerThread;
+    m_WorkerThread = nullptr;
+    //update_start_stop_buttons();
+  }
+  update_widgets();
+}
+
+
+MainWindow::~MainWindow()
 {
 
 }
 
-void Main::on_button1_clicked()
+void MainWindow::on_button1_clicked()
 {
   auto refTreeSelection = mTreeView.get_selection();
   auto iter = refTreeSelection->get_selected();
@@ -110,15 +155,29 @@ void Main::on_button1_clicked()
     sControl.writeRSIConfigContent(selectedString);
   }
 
+  if (m_WorkerThread)
+  {
+    std::cout << "Can't start a worker thread while another one is running." << std::endl;
+  }
+  else
+  {
+    // Start a new worker thread.
+    m_WorkerThread = new std::thread(
+      [this]
+      {
+        m_Worker.do_work(this);
+      });
+  }
+
   sControl.start();
 }
 
-void Main::on_button2_clicked()
+void MainWindow::on_button2_clicked()
 {
   sControl.stop();
 }
 
-void Main::on_button3_clicked()
+void MainWindow::on_button3_clicked()
 {
   auto refTreeSelection = mTreeView.get_selection();
   auto iter = refTreeSelection->get_selected();
@@ -135,4 +194,22 @@ void Main::on_button3_clicked()
   }
 
   sControl.restart();
+}
+
+void MainWindow::update_widgets()
+{
+  Glib::ustring message_from_worker_thread;
+  m_Worker.get_data(&message_from_worker_thread);
+
+
+  Gtk::TextBuffer::iterator iter_end;
+  iter_end = mRefTextOutputBuffer->get_iter_at_offset(mRefTextOutputBuffer->get_char_count());
+  mRefTextOutputBuffer->insert(iter_end, message_from_worker_thread);
+
+  // move cursor to the end after insert
+  auto it = mRefTextOutputBuffer->get_iter_at_line(mRefTextOutputBuffer->get_line_count());
+
+  mTextViewOutput.scroll_to(it);
+
+
 }
